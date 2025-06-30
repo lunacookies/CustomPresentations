@@ -1,13 +1,16 @@
 import UIKit
 
 final class RootViewController: UICollectionViewController {
-	private static let items = ["Foo", "Bar", "Baz"]
+	private static let items = [
+		Item(title: "Custom Sheet") { CustomSheetExampleViewController() },
+	]
 
 	private let cellRegistration =
 		UICollectionView.CellRegistration<UICollectionViewListCell, Void> { cell, indexPath, _ in
 			var contentConfiguration = UIListContentConfiguration.cell()
-			contentConfiguration.text = RootViewController.items[indexPath.item]
+			contentConfiguration.text = RootViewController.items[indexPath.item].title
 			cell.contentConfiguration = contentConfiguration
+			cell.accessories = [.disclosureIndicator()]
 		}
 
 	init() {
@@ -24,7 +27,8 @@ final class RootViewController: UICollectionViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		title = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
+		title = "All Presentations"
+		navigationItem.backButtonTitle = "All"
 		navigationController?.navigationBar.prefersLargeTitles = true
 	}
 
@@ -33,7 +37,9 @@ final class RootViewController: UICollectionViewController {
 	}
 
 	override func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-		collectionView.deselectItem(at: indexPath, animated: true)
+		let viewController = Self.items[indexPath.item].viewControllerProvider()
+		viewController.navigationItem.largeTitleDisplayMode = .never
+		show(viewController, sender: nil)
 	}
 
 	override func collectionView(
@@ -41,5 +47,10 @@ final class RootViewController: UICollectionViewController {
 		cellForItemAt indexPath: IndexPath,
 	) -> UICollectionViewCell {
 		collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: ())
+	}
+
+	private struct Item {
+		let title: String
+		let viewControllerProvider: () -> UIViewController
 	}
 }
