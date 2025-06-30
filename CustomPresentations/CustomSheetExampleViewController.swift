@@ -42,6 +42,18 @@ extension CustomSheetExampleViewController: UIViewControllerTransitioningDelegat
 	) -> UIPresentationController? {
 		CustomSheetPresentationController(presentedViewController: presented, presenting: presenting)
 	}
+
+	func animationController(
+		forPresented _: UIViewController,
+		presenting _: UIViewController,
+		source _: UIViewController,
+	) -> (any UIViewControllerAnimatedTransitioning)? {
+		CustomSheetAnimationController(operation: .present)
+	}
+
+	func animationController(forDismissed _: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? {
+		CustomSheetAnimationController(operation: .dismiss)
+	}
 }
 
 private final class CustomSheetPresentationController: UIPresentationController {
@@ -97,5 +109,55 @@ private final class CustomSheetPresentationController: UIPresentationController 
 	@objc
 	private func didTapDimmingView(_: UITapGestureRecognizer) {
 		presentedViewController.dismiss(animated: true)
+	}
+}
+
+private final class CustomSheetAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
+	private let operation: Operation
+	private let animator = UIViewPropertyAnimator(
+		duration: 0,
+		timingParameters: UISpringTimingParameters(mass: 1, stiffness: 200, damping: 25, initialVelocity: .zero),
+	)
+
+	init(operation: Operation) {
+		self.operation = operation
+	}
+
+	func transitionDuration(using _: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
+		animator.duration
+	}
+
+	func animateTransition(using transitionContext: any UIViewControllerContextTransitioning) {
+		let toViewController = transitionContext.viewController(forKey: .to)!
+		let fromViewController = transitionContext.viewController(forKey: .from)!
+		let presentedViewController = switch operation {
+		case .present: toViewController
+		case .dismiss: fromViewController
+		}
+
+		let presentedFrame = transitionContext.finalFrame(for: presentedViewController)
+		var dismissedFrame = presentedFrame
+		dismissedFrame.origin.y += dismissedFrame.size.height
+
+		switch operation {
+		case .present:
+			transitionContext.containerView.addSubview(presentedViewController.view)
+			presentedViewController.view.frame = dismissedFrame
+			animator.addAnimations { presentedViewController.view.frame = presentedFrame }
+
+		case .dismiss:
+			animator.addAnimations { presentedViewController.view.frame = dismissedFrame }
+		}
+
+		animator.addCompletion { position in
+			transitionContext.completeTransition(position == .end)
+		}
+
+		animator.startAnimation()
+	}
+
+	enum Operation {
+		case present
+		case dismiss
 	}
 }
