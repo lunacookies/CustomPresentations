@@ -38,6 +38,7 @@ final class ContentViewController: UICollectionViewController {
 				dismiss(animated: true)
 			},
 		)
+		collectionView.keyboardDismissMode = .onDrag
 	}
 
 	override func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
