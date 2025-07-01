@@ -168,6 +168,7 @@ private final class CustomSheetPresentationController: UIPresentationController 
 		let presentedView = presentedView!
 		let presentingView = presentingViewController.view!
 		let displayCornerRadius = presentingView.window!.screen.displayCornerRadius
+		containerView!.layoutIfNeeded()
 
 		switch operation {
 		case .present:
@@ -188,7 +189,6 @@ private final class CustomSheetPresentationController: UIPresentationController 
 			sheetView.layer.shadowRadius = 40
 
 		case .dismiss:
-			containerView?.layoutIfNeeded()
 			let dismissedTransform = CGAffineTransform(translationX: 0, y: presentedView.frame.height)
 				.scaledBy(x: 0.1, y: 1)
 
