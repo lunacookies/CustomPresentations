@@ -50,8 +50,17 @@ final class ContentViewController: UICollectionViewController {
 		return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: item)
 	}
 
-	override func collectionView(_: UICollectionView, shouldSelectItemAt _: IndexPath) -> Bool {
-		false
+	override func collectionView(_: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
+		Item(rawValue: indexPath.item)! == .textField
+	}
+
+	override func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+		assert(Item(rawValue: indexPath.item)! == .textField)
+		collectionView.deselectItem(at: indexPath, animated: false)
+		if let cell = collectionView.cellForItem(at: indexPath) {
+			let contentView = cell.contentView as! TextFieldContentView
+			contentView.startEditing()
+		}
 	}
 
 	private enum Item: Int, CaseIterable {
@@ -136,5 +145,9 @@ private final class TextFieldContentView: UIView, UIContentView {
 	@available(*, unavailable)
 	required init?(coder _: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
+	}
+
+	func startEditing() {
+		textField.becomeFirstResponder()
 	}
 }
