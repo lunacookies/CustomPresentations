@@ -107,8 +107,6 @@ private final class CustomSheetPresentationController: UIPresentationController 
 		dimmingView.addGestureRecognizer(tapGestureRecognizer)
 
 		let displayCornerRadius = containerView.window!.screen.displayCornerRadius
-		presentingViewController.view.layer.cornerRadius = displayCornerRadius
-
 		let presentedViewPadding: CGFloat = 20
 		presentedView.layer.cornerRadius = displayCornerRadius - presentedViewPadding
 
@@ -168,11 +166,20 @@ private final class CustomSheetPresentationController: UIPresentationController 
 
 	private func configure(for operation: Operation) {
 		let presentedView = presentedView!
+		let presentingView = presentingViewController.view!
+		let displayCornerRadius = presentingView.window!.screen.displayCornerRadius
 
 		switch operation {
 		case .present:
+			let presentingViewScale = 0.95
+			let gapAbovePresentingView = presentingView.frame.height * (1 - presentingViewScale) / 2
+			let gapBesidePresentingView = presentingView.frame.width * (1 - presentingViewScale) / 3
+
+			presentingView.transform =
+				CGAffineTransform(scaleX: presentingViewScale, y: presentingViewScale)
+					.translatedBy(x: 0, y: gapAbovePresentingView)
+			presentingView.layer.cornerRadius = displayCornerRadius - gapBesidePresentingView
 			presentedView.transform = .identity
-			presentingViewController.view.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
 			blurView.effect = UIBlurEffect.effect(withBlurRadius: 2)
 			dimmingView.alpha = 0.5
 			sheetView.effect = nil
@@ -186,7 +193,8 @@ private final class CustomSheetPresentationController: UIPresentationController 
 				.scaledBy(x: 0.1, y: 1)
 
 			presentedView.transform = dismissedTransform
-			presentingViewController.view.transform = .identity
+			presentingView.transform = .identity
+			presentingView.layer.cornerRadius = displayCornerRadius
 			blurView.effect = nil
 			dimmingView.alpha = 0
 			sheetView.effect = UIBlurEffect.effect(withBlurRadius: 40)
