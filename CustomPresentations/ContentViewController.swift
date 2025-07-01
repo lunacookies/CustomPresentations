@@ -112,8 +112,8 @@ private final class TextFieldContentView: UIView, UIContentView {
 		}
 	}
 
-	let listContentView: UIListContentView
-	let textField: UITextField
+	private let listContentView: UIListContentView
+	private let textField: UITextField
 
 	init(configuration: any UIContentConfiguration) {
 		self.configuration = configuration
