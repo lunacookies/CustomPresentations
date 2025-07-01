@@ -5,8 +5,10 @@ final class CustomSheetExampleViewController: UIViewController {
 		super.loadView()
 		view.backgroundColor = .systemBackground
 
+		var configuration = UIButton.Configuration.borderedProminent()
+		configuration.buttonSize = .large
 		let button = UIButton(
-			configuration: .borderedTinted(),
+			configuration: configuration,
 			primaryAction: UIAction(title: "Present") { [weak self] _ in
 				guard let self else { return }
 				didTapButton()
