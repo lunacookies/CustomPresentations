@@ -129,17 +129,9 @@ private final class TextFieldContentView: UIView, UIContentView {
 			textField.resignFirstResponder()
 		}, for: .editingDidEndOnExit)
 
-		listContentView.translatesAutoresizingMaskIntoConstraints = false
+		embed(listContentView)
 		textField.translatesAutoresizingMaskIntoConstraints = false
-		addSubview(listContentView)
 		addSubview(textField)
-
-		NSLayoutConstraint.activate([
-			listContentView.topAnchor.constraint(equalTo: topAnchor),
-			listContentView.leadingAnchor.constraint(equalTo: leadingAnchor),
-			listContentView.trailingAnchor.constraint(equalTo: trailingAnchor),
-			listContentView.bottomAnchor.constraint(equalTo: bottomAnchor),
-		])
 	}
 
 	@available(*, unavailable)
