@@ -3,6 +3,7 @@ import UIKit
 final class RootViewController: UICollectionViewController {
 	private static let items = [
 		Item(title: "Custom Sheet") { CustomSheetExampleViewController() },
+		Item(title: "Custom Popover") { CustomPopoverExampleViewController() },
 	]
 
 	private let cellRegistration =

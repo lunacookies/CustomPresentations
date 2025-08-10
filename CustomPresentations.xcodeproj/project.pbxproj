@@ -7,10 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BD2793D82E48B82F00605CBD /* CustomPopoverExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2793D72E48B82F00605CBD /* CustomPopoverExampleViewController.swift */; };
 		BDEFB1922E12067B00F8628C /* License.md in Resources */ = {isa = PBXBuildFile; fileRef = BDEFB1912E12067B00F8628C /* License.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BD2793D72E48B82F00605CBD /* CustomPopoverExampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CustomPopoverExampleViewController.swift; path = CustomPresentations/CustomPopoverExampleViewController.swift; sourceTree = "<group>"; };
 		BDEFB1792E1205B100F8628C /* CustomPresentations.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomPresentations.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDEFB1912E12067B00F8628C /* License.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = License.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -50,6 +52,7 @@
 		BDEFB1702E1205B100F8628C = {
 			isa = PBXGroup;
 			children = (
+				BD2793D72E48B82F00605CBD /* CustomPopoverExampleViewController.swift */,
 				BDEFB17B2E1205B100F8628C /* CustomPresentations */,
 				BDEFB1912E12067B00F8628C /* License.md */,
 				BDEFB17A2E1205B100F8628C /* Products */,
@@ -139,6 +142,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD2793D82E48B82F00605CBD /* CustomPopoverExampleViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
