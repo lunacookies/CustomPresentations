@@ -45,6 +45,8 @@ private final class CustomPopoverTransitioningDelegate: NSObject, UIViewControll
 }
 
 private final class CustomPopoverPresentationController: UIPresentationController {
+	private var dimmingView: UIView!
+
 	override var frameOfPresentedViewInContainerView: CGRect {
 		guard let containerView else { return .zero }
 		let size = CGSize(width: 300, height: 300)
@@ -52,6 +54,39 @@ private final class CustomPopoverPresentationController: UIPresentationControlle
 		origin.x -= size.width / 2
 		origin.y += 50
 		return CGRect(origin: origin, size: size)
+	}
+
+	override func presentationTransitionWillBegin() {
+		dimmingView = UIView()
+		dimmingView.backgroundColor = .black
+		dimmingView.alpha = 0
+		dimmingView.addSubview(presentedView!)
+		containerView!.addSubview(dimmingView)
+		dimmingView.frame = containerView!.bounds
+
+		if let transitionCoordinator = presentedViewController.transitionCoordinator {
+			transitionCoordinator.animate { [dimmingView] _ in
+				dimmingView!.alpha = 0.1
+			}
+		}
+	}
+
+	override func presentationTransitionDidEnd(_ completed: Bool) {
+		guard !completed else { return }
+		dimmingView.removeFromSuperview()
+	}
+
+	override func dismissalTransitionWillBegin() {
+		if let transitionCoordinator = presentedViewController.transitionCoordinator {
+			transitionCoordinator.animate { [dimmingView] _ in
+				dimmingView!.alpha = 0
+			}
+		}
+	}
+
+	override func dismissalTransitionDidEnd(_ completed: Bool) {
+		guard completed else { return }
+		dimmingView.removeFromSuperview()
 	}
 }
 
