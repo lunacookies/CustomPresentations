@@ -23,16 +23,25 @@ final class CustomPopoverExampleViewController: UIViewController {
 private final class CustomPopoverTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
 	static let shared = CustomPopoverTransitioningDelegate()
 
+	private var animationController: CustomPopoverAnimationController!
+
 	func animationController(
 		forPresented _: UIViewController,
 		presenting _: UIViewController,
 		source _: UIViewController,
 	) -> (any UIViewControllerAnimatedTransitioning)? {
-		CustomPopoverAnimationController(type: .presentation)
+		animationController = CustomPopoverAnimationController(type: .presentation)
+		return animationController
 	}
 
 	func animationController(forDismissed _: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? {
 		CustomPopoverAnimationController(type: .dismissal)
+	}
+
+	func interactionControllerForPresentation(using _: any UIViewControllerAnimatedTransitioning)
+		-> (any UIViewControllerInteractiveTransitioning)?
+	{
+		animationController
 	}
 
 	func presentationController(
@@ -40,11 +49,21 @@ private final class CustomPopoverTransitioningDelegate: NSObject, UIViewControll
 		presenting: UIViewController?,
 		source _: UIViewController,
 	) -> UIPresentationController? {
-		CustomPopoverPresentationController(presentedViewController: presented, presenting: presenting)
+		let presentationController =
+			CustomPopoverPresentationController(presentedViewController: presented, presenting: presenting)
+
+		presentationController.didTapDimmingViewHandler = { [self] in
+			animationController.cancelInteractiveTransition()
+			presented.dismiss(animated: true)
+		}
+
+		return presentationController
 	}
 }
 
 private final class CustomPopoverPresentationController: UIPresentationController {
+	var didTapDimmingViewHandler: (() -> Void)?
+
 	private var dimmingView: UIView!
 
 	override var frameOfPresentedViewInContainerView: CGRect {
@@ -62,6 +81,9 @@ private final class CustomPopoverPresentationController: UIPresentationControlle
 		dimmingView.alpha = 0
 		dimmingView.addSubview(presentedView!)
 		containerView!.embed(dimmingView)
+
+		let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapDimmingView(_:)))
+		dimmingView.addGestureRecognizer(tapGestureRecognizer)
 
 		if let transitionCoordinator = presentedViewController.transitionCoordinator {
 			transitionCoordinator.animate { [dimmingView] _ in
@@ -87,20 +109,48 @@ private final class CustomPopoverPresentationController: UIPresentationControlle
 		guard completed else { return }
 		dimmingView.removeFromSuperview()
 	}
+
+	@objc
+	private func didTapDimmingView(_: UITapGestureRecognizer) {
+		didTapDimmingViewHandler?()
+	}
 }
 
-private final class CustomPopoverAnimationController: NSObject, UIViewControllerAnimatedTransitioning {
+private final class CustomPopoverAnimationController: NSObject,
+	UIViewControllerAnimatedTransitioning, UIViewControllerInteractiveTransitioning
+{
 	private let type: PresentationType
+	private var animator: UIViewPropertyAnimator?
+	private var transitionContext: (any UIViewControllerContextTransitioning)?
 
 	init(type: PresentationType) {
 		self.type = type
 	}
 
 	func transitionDuration(using _: (any UIViewControllerContextTransitioning)?) -> TimeInterval {
-		type == .presentation ? 0.4 : 0.2
+		type == .presentation ? 0.4 : 0.3
 	}
 
 	func animateTransition(using transitionContext: any UIViewControllerContextTransitioning) {
+		interruptibleAnimator(using: transitionContext).startAnimation()
+	}
+
+	func startInteractiveTransition(_ transitionContext: any UIViewControllerContextTransitioning) {
+		animateTransition(using: transitionContext)
+	}
+
+	func interruptibleAnimator(using transitionContext: any UIViewControllerContextTransitioning)
+		-> any UIViewImplicitlyAnimating
+	{
+		if let animator { return animator }
+		self.transitionContext = transitionContext
+
+		let duration = transitionDuration(using: transitionContext)
+		let bounce: CGFloat = type == .presentation ? 0.2 : 0
+		let timingParameters = UISpringTimingParameters(duration: duration, bounce: bounce)
+		let animator = UIViewPropertyAnimator(duration: 0, timingParameters: timingParameters)
+		self.animator = animator
+
 		guard
 			let fromViewController = transitionContext.viewController(forKey: .from),
 			let toViewController = transitionContext.viewController(forKey: .to),
@@ -108,7 +158,7 @@ private final class CustomPopoverAnimationController: NSObject, UIViewController
 			let toView = toViewController.view
 		else {
 			transitionContext.completeTransition(false)
-			return
+			return animator
 		}
 
 		let (presentedViewController, presentedView) = switch type {
@@ -130,18 +180,19 @@ private final class CustomPopoverAnimationController: NSObject, UIViewController
 
 		presentedView.transform = type == .presentation ? dismissedTransform : presentedTransform
 
-		let duration = transitionDuration(using: transitionContext)
-		let bounce: CGFloat = type == .presentation ? 0.2 : 0
-		let timingParameters = UISpringTimingParameters(duration: duration, bounce: bounce)
-		let animator = UIViewPropertyAnimator(duration: 0, timingParameters: timingParameters)
-
 		animator.addAnimations { [self] in
 			presentedView.transform = type == .presentation ? presentedTransform : dismissedTransform
 		}
 		animator.addCompletion { position in
 			transitionContext.completeTransition(position == .end)
 		}
-		animator.startAnimation()
+
+		return animator
+	}
+
+	func cancelInteractiveTransition() {
+		transitionContext!.cancelInteractiveTransition()
+		animator!.isReversed = true
 	}
 
 	enum PresentationType {
