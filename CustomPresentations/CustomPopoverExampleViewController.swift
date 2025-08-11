@@ -35,12 +35,17 @@ private final class CustomPopoverTransitioningDelegate: NSObject, UIViewControll
 	}
 
 	func animationController(forDismissed _: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? {
-		CustomPopoverAnimationController(type: .dismissal)
+		animationController = CustomPopoverAnimationController(type: .dismissal)
+		return animationController
 	}
 
 	func interactionControllerForPresentation(using _: any UIViewControllerAnimatedTransitioning)
 		-> (any UIViewControllerInteractiveTransitioning)?
 	{
+		animationController
+	}
+
+	func interactionControllerForDismissal(using animator: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)? {
 		animationController
 	}
 
@@ -76,6 +81,11 @@ private final class CustomPopoverPresentationController: UIPresentationControlle
 	}
 
 	override func presentationTransitionWillBegin() {
+		let touchForwardingView = TouchForwardingView()
+		touchForwardingView.passthroughViews = [presentingViewController.view]
+		containerView!.embed(touchForwardingView)
+		containerView!.sendSubviewToBack(touchForwardingView)
+
 		dimmingView = UIView()
 		dimmingView.backgroundColor = .black
 		dimmingView.alpha = 0
@@ -113,6 +123,22 @@ private final class CustomPopoverPresentationController: UIPresentationControlle
 	@objc
 	private func didTapDimmingView(_: UITapGestureRecognizer) {
 		didTapDimmingViewHandler?()
+		dimmingView.isUserInteractionEnabled = false
+	}
+
+	private final class TouchForwardingView: UIView {
+		var passthroughViews = [UIView]()
+
+		override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+			let hitView = super.hitTest(point, with: event)
+			guard hitView == self else { return hitView }
+			for passthroughView in passthroughViews {
+				if let passthroughHitView = passthroughView.hitTest(convert(point, to: passthroughView), with: event) {
+					return passthroughHitView
+				}
+			}
+			return self
+		}
 	}
 }
 
