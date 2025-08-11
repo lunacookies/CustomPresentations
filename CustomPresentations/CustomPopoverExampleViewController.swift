@@ -61,8 +61,7 @@ private final class CustomPopoverPresentationController: UIPresentationControlle
 		dimmingView.backgroundColor = .black
 		dimmingView.alpha = 0
 		dimmingView.addSubview(presentedView!)
-		containerView!.addSubview(dimmingView)
-		dimmingView.frame = containerView!.bounds
+		containerView!.embed(dimmingView)
 
 		if let transitionCoordinator = presentedViewController.transitionCoordinator {
 			transitionCoordinator.animate { [dimmingView] _ in
